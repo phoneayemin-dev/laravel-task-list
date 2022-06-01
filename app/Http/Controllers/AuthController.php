@@ -2,12 +2,17 @@
 
 namespace App\Http\Controllers;
 
+
 use App\Models\Task;
 use App\Models\User;
 use Illuminate\Http\Request;
+
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+
+use App\Http\Requests\StoreRegisterRequest;
+use App\Http\Requests\LoginRequest;
 
 class AuthController extends Controller
 {
@@ -17,25 +22,14 @@ class AuthController extends Controller
      * @return \Illuminate\Http\Response
      */
 
-    public function postRegister(Request $request) {
+    public function postRegister(StoreRegisterRequest $request) {
 
-        $validator = Validator::make($request->all(),[
-            'name' => 'required',
-            'password' => 'required|min:4',
-            'email' => 'required|email|unique:users',
-            'password_confirmation' => 'required_with:password|same:password|min:4'
-        ]);
-
-        if ($validator->fails())
-        {
-            $messages = $validator->getMessageBag();
-            return view("auth.register", ['errors' => $messages]);
-        }
+        $validated = $request->validated();
 
         $newUser = new User();
-        $newUser->name = $request->name;
-        $newUser->email = $request->email;
-        $newUser->password = bcrypt($request->password);
+        $newUser->name = $validated['name'];
+        $newUser->email = $validated['email'];
+        $newUser->password = bcrypt($validated['password']);
         $newUser->save();
 
         return view('welcome');
@@ -50,20 +44,11 @@ class AuthController extends Controller
         return view('auth.login');
     }
 
-    public function postLogin(Request $request) {
+    public function postLogin(LoginRequest $request) {
 
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|email',
-            'password' => 'required|min:4'
-        ]);
+        $validated = $request->validated();
 
-        $messages = collect();
-        if ($validator->fails()) {
-            $messages = $validator->getMessageBag();
-            return view('auth.login', ['errors' => $messages]);
-        }
-        $credentials = $request->only('email', 'password');
-        if (Auth::attempt($credentials)) {
+        if (Auth::attempt(['email' => $validated['email'], 'password' => $validated['password']])) {
             $user = User::whereId(Auth::id())->first();
             return view("tasks.index", [ 'tasks' => $user->tasks()->get()]);
         }

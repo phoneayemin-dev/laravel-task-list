@@ -18,19 +18,27 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+
+
+
 //Authentication Routes
-Route::prefix('auth')->group(function(){
-    Route::get('/login', [AuthController::class, "getLogin"]);
-    Route::post('/login', [AuthController::class, "postLogin"]);
-    Route::get('/logout', [AuthController::class, "getLogout"]);
+Route::controller(AuthController::class)->prefix('auth')->group(function(){
     
-    // //Registration Routes
-    Route::get('/register', [AuthController::class, "getRegister"]);
-    Route::post('/register', [AuthController::class, "postRegister"]);
+    //Registration Routes
+    Route::post('/register', "postRegister");
+    Route::get('/register', "getRegister");
+
+    //Login Routes
+    Route::get('/login', "getLogin");
+    Route::post('/login', "postLogin");
+    Route::get('/logout', "getLogout");
+    
 });
 
 
 
-Route::get('task', [TaskController::class, "index"]);
-Route::post('task', [ TaskController::class, "store"]);
-Route::delete('task/{id}', [ TaskController::class, "destroy"]);
+Route::controller(TaskController::class)->group(function () {
+    Route::get('task', 'index');
+    Route::post('task', 'store');
+    Route::delete('task/{id}', 'destroy');
+});

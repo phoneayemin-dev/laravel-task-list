@@ -2,10 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\DeleteTaskRequest;
 use App\Models\Task;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+
+use App\Http\Requests\StoreTaskRequest;
+use App\Interfaces\TaskRepositoryInterface;
+use App\Repositories\TaskRepository;
 
 class TaskController extends Controller
 {
@@ -14,10 +19,17 @@ class TaskController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+    private $taskRepoInterface;
+
+    function __construct(TaskRepositoryInterface $taskRepositoryInterface)
+    {
+        $this->taskRepoInterface = $taskRepositoryInterface;
+    }
+
     public function index()
     {
         //
-        return view("task.index", [ 'tasks' => Task::orderBy('created_at', 'ASC')->get()]);
+        return view("tasks.index", [ 'tasks' => Task::orderBy('created_at', 'ASC')->get()]);
     }
 
     /**
@@ -36,24 +48,17 @@ class TaskController extends Controller
      * @param  \App\Http\Requests\StoreTaskRequest  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(StoreTaskRequest $request)
     {
         //
-        if (!Auth::user()) {
-            return view('auth.login');
-        }
+        $validated = $request->validated();
 
-        $validator = Validator::make($request->all(), [
-            'name' => 'required'
+        $this->taskRepoInterface->createTask([
+            'name' => $validated['name'],
+            'user_id' => Auth::id(),
         ]);
-        if ($validator->fails()) {
-            return view('tasks.index', ['errors' => $validator->getMessageBag()]);
-        }
-        $newTask = new Task;
-        $newTask->name = $request->name;
-        $newTask->user_id = Auth::user()->id;
-        $newTask->save();
-        return view('tasks.index', [ 'tasks' => Task::orderBy('created_at', 'asc')->get()]);
+
+        return view('tasks.index', [ 'tasks' => $this->taskRepoInterface->getTasksByUser(Auth::id())]);
     }
 
     /**
@@ -96,16 +101,9 @@ class TaskController extends Controller
      * @param  \App\Models\Task  $task
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Request $request, $id)
+    public function destroy(DeleteTaskRequest $request, $id)
     {
-        //
-        if (!Auth::user()) {
-            return view('auth.login');
-        }
-
-        $existingTask = Task::whereId($id)->first();
-        $existingTask->delete();
-
-        return view("tasks.index", [ "tasks" => Task::where('user_id', Auth::user()->id)->orderBy('created_at', 'asc')->get()]);
+        $this->taskRepoInterface->deleteTask($id);
+        return view("tasks.index", [ "tasks" => $this->taskRepoInterface->getTasksByUser(Auth::id())]);
     }
 }
