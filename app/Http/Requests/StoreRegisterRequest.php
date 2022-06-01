@@ -29,10 +29,18 @@ class StoreRegisterRequest extends FormRequest
     public function rules()
     {
         return [
-            'name' => 'required',
+            'name' => 'required|string|max:255',
             'password' => 'required|min:4',
             'email' => 'required|email|unique:users',
             'password_confirmation' => 'required_with:password|same:password|min:4'
+        ];
+    }
+
+    public function attributes()
+    {
+        return [
+            'email' => 'e-mail address',
+            'password_confirmation' => 'confirm password'
         ];
     }
 }

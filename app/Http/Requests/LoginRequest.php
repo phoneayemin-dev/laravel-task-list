@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class LoginRequest extends FormRequest
 {
@@ -14,10 +15,10 @@ class LoginRequest extends FormRequest
      */
     public function authorize()
     {
-        if (Auth::guest() || Auth::user()) {
-            return true;
-        }
-        return false;
+        // if (Auth::guest() || Auth::user() ||Auth::viaRemember()) {
+        //     return true;
+        // }
+        return true;
     }
 
     /**

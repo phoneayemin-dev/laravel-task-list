@@ -35,7 +35,9 @@ Route::controller(AuthController::class)->prefix('auth')->group(function(){
     
 });
 
-
+// Route::controller(AuthController::class)->group(function() {
+//     Route::get('/password/reset', '');
+// });
 
 Route::controller(TaskController::class)->group(function () {
     Route::get('task', 'index');

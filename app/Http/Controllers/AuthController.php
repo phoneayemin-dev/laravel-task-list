@@ -32,7 +32,7 @@ class AuthController extends Controller
         $newUser->password = bcrypt($validated['password']);
         $newUser->save();
 
-        return view('welcome');
+        return view('auth.login');
 
     }
 
@@ -47,18 +47,17 @@ class AuthController extends Controller
     public function postLogin(LoginRequest $request) {
 
         $validated = $request->validated();
-
+        Log::info($validated);
         if (Auth::attempt(['email' => $validated['email'], 'password' => $validated['password']])) {
             $user = User::whereId(Auth::id())->first();
             return view("tasks.index", [ 'tasks' => $user->tasks()->get()]);
         }
-
         return redirect('login');
     }
 
     public function getLogout(Request $request) {
         Auth::logout();
-        return view('welcome');
+        return view('auth.login');
     }
     public function index()
     {
