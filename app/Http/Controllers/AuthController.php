@@ -47,17 +47,17 @@ class AuthController extends Controller
     public function postLogin(LoginRequest $request) {
 
         $validated = $request->validated();
-        Log::info($validated);
         if (Auth::attempt(['email' => $validated['email'], 'password' => $validated['password']])) {
             $user = User::whereId(Auth::id())->first();
             return view("tasks.index", [ 'tasks' => $user->tasks()->get()]);
         }
-        return redirect('login');
+
+        return view('auth.login')->with('responseMessage', ["Email and password doesn't match."]);
     }
 
     public function getLogout(Request $request) {
         Auth::logout();
-        return view('auth.login');
+        return redirect('auth/login');
     }
     public function index()
     {
