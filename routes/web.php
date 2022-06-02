@@ -32,12 +32,19 @@ Route::controller(AuthController::class)->prefix('auth')->group(function(){
     Route::get('/login', "getLogin");
     Route::post('/login', "postLogin");
     Route::get('/logout', "getLogout");
+
+    
+});
+Route::controller(AuthController::class)->group(function() {
+    Route::get('forgot-password', 'getEmail');
+    Route::post('forgot-password', 'postEmail');
+
+    Route::get('reset-password/{token}', 'getResetPassword');
+    Route::post('reset-password/{token}', 'postResetPassword');
     
 });
 
-// Route::controller(AuthController::class)->group(function() {
-//     Route::get('/password/reset', '');
-// });
+
 
 Route::controller(TaskController::class)->group(function () {
     Route::get('task', 'index');

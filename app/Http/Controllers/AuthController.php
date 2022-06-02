@@ -10,9 +10,13 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 
 use App\Http\Requests\StoreRegisterRequest;
 use App\Http\Requests\LoginRequest;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Mail;
 
 class AuthController extends Controller
 {
@@ -59,6 +63,41 @@ class AuthController extends Controller
         Auth::logout();
         return redirect('auth/login');
     }
+
+    public function getResetPassword(Request $request) {
+        return view('auth.passwords.reset');
+    }
+    public function getEmail(Request $request) {
+        return view('auth.passwords.email');
+    }
+
+    public function postEmail(Request $request) {
+        $request->validate([
+            'email' => 'required|email'
+        ]);
+        $token = Str::random(64);
+        DB::table('password_resets')->insert([
+            'email' =>$request->email,
+            'token' => $token,
+            'created_at' => Carbon::now()
+        ]);
+
+        // $resetLink = route("reset-password/{token}", [ 
+        //     'token' => $token,
+        //     'email' => $request->email
+        // ]);
+
+        // $body = "We have received to reset password for <strong> Laravel Task List </strong> app with ". $request->email. ". You can reset by clickiing the link below.";
+    
+        Mail::send("auth.emails.password", ['token' => $token, 'email' => $request->email ], function($message) use($request){
+            $message->from('noreply@example.com', 'Laravel Task List');
+            $message->to($request->email, "User");
+            $message->subject('Reset Password');
+        });
+
+        return back()->with('success', 'We e-mailed your password reset link');
+    }
+
     public function index()
     {
         //
